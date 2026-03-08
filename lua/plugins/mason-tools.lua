@@ -9,7 +9,7 @@ return {
         -- ====================
         -- LSP (Language Server)
         -- ====================
-        "basedpyright",       -- Python LSP
+        "pyright",       -- Python LSP
         "clangd",             -- C / C++ LSP
         "gopls",              -- Go LSP
         "json-lsp",           -- JSON LSP
