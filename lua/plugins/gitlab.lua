@@ -6,6 +6,7 @@ return {
       "MunifTanjim/nui.nvim",
       "nvim-lua/plenary.nvim",
       "sindrets/diffview.nvim",
+      "stevearc/dressing.nvim",
       "nvim-mini/mini.icons",
     },
     build = function()
