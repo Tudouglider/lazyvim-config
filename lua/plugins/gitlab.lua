@@ -14,9 +14,9 @@ return {
     end,
     config = function()
       require("gitlab").setup({
-        url = "https://gitlab.clounix.com",
+        gitlab_url = "https://gitlab.clounix.com",
         auth_provider = function()
-          return { token = vim.env.GITLAB_TOKEN }
+          return vim.env.GITLAB_TOKEN
         end,
         log_path = vim.fn.stdpath("cache") .. "/gitlab.nvim.log",
         reviewer_settings = {
