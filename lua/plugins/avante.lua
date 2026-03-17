@@ -5,16 +5,17 @@ return {
   version = false,
   build = "make",
   opts = {
+    -- 1. 设置主 provider
     provider = "ollama",
     auto_suggestions_provider = "ollama",
     icon_provider = "mini", 
 
-    vendors = {
-      ---@type AvanteProvider
+    -- 2. 【核心修复】将 vendors 改为 providers
+    providers = {
       ollama = {
         ["local"] = true,
         endpoint = "http://127.0.0.1:11434/v1",
-        model = "qwen3.5:35b", -- 已升级至 35B
+        model = "qwen3.5:35b",
         parse_curl_args = function(opts, code_opts)
           return {
             url = opts.endpoint .. "/chat/completions",
@@ -24,8 +25,9 @@ return {
             },
             body = {
               model = opts.model,
+              -- 这里的处理逻辑保持不变，但现在被正确放置在了 providers 下
               messages = require("avante.providers").copilot.parse_messages(code_opts),
-              max_tokens = 16384, -- 已调大，适合长代码生成
+              max_tokens = 16384,
               stream = true,
             },
           }
@@ -67,7 +69,8 @@ return {
     "stevearc/dressing.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
-    { "echasnovski/mini.icons" },
+    -- 确保这里使用的是更新后的路径
+    { "nvim-mini/mini.icons" }, 
     {
       "HakonHarnes/img-clip.nvim",
       event = "VeryLazy",
