@@ -9,21 +9,16 @@ return {
       "stevearc/dressing.nvim",
       "nvim-mini/mini.icons",
     },
+    enabled = true,
     build = function()
-      require("gitlab.server").build()
+      require("gitlab.server").build(true)
     end,
     config = function()
       require("gitlab").setup({
-        gitlab_url = "https://gitlab.clounix.com",
         auth_provider = function()
-          return vim.env.GITLAB_TOKEN
+          return vim.env.GITLAB_TOKEN, vim.env.GITLAB_URL, nil
         end,
-        log_path = vim.fn.stdpath("cache") .. "/gitlab.nvim.log",
-        reviewer_settings = {
-          diffview = {
-            imply_local = false,
-          },
-        },
+        log_path = "~/.cache/nvim/gitlab.log",
       })
     end,
     keys = {
