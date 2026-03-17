@@ -10,7 +10,7 @@ return {
     auto_suggestions_provider = "ollama",
     icon_provider = "mini", 
 
-    -- 2. 【核心修复】将 vendors 改为 providers
+    -- 2. 配置本地 Ollama
     providers = {
       ollama = {
         ["local"] = true,
@@ -25,8 +25,8 @@ return {
             },
             body = {
               model = opts.model,
-              -- 这里的处理逻辑保持不变，但现在被正确放置在了 providers 下
-              messages = require("avante.providers").copilot.parse_messages(code_opts),
+              -- 【核心修复】传入 opts 和 code_opts 两个参数，解决 nil value 报错
+              messages = require("avante.providers").openai.parse_messages(opts, code_opts),
               max_tokens = 16384,
               stream = true,
             },
@@ -69,7 +69,6 @@ return {
     "stevearc/dressing.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
-    -- 确保这里使用的是更新后的路径
     { "nvim-mini/mini.icons" }, 
     {
       "HakonHarnes/img-clip.nvim",
