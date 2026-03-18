@@ -2,91 +2,67 @@ return {
   "yetone/avante.nvim",
   event = "VeryLazy",
   lazy = false,
-  version = false,
-  build = "make",
-  opts = {
-    -- 1. 设置主 provider
-    provider = "ollama",
-    auto_suggestions_provider = "ollama",
-    icon_provider = "mini", 
+  version = false,  -- 保持最新版
 
-    -- 2. 配置本地 Ollama
+  opts = {
+    provider = "openai",  -- 还是用 "openai" 作为 provider 名，但实际指向 DeepSeek
+
     providers = {
-      ollama = {
-        ["local"] = true,
-        endpoint = "http://127.0.0.1:11434/v1",
-        model = "qwen3.5:35b",
-        parse_curl_args = function(opts, code_opts)
-          return {
-            url = opts.endpoint .. "/chat/completions",
-            headers = {
-              ["Accept"] = "application/json",
-              ["Content-Type"] = "application/json",
-            },
-            body = {
-              model = opts.model,
-              -- 【核心修复】传入 opts 和 code_opts 两个参数，解决 nil value 报错
-              messages = require("avante.providers").openai.parse_messages(opts, code_opts),
-              max_tokens = 16384,
-              stream = true,
-            },
-          }
-        end,
-        parse_stream_data = function(data, handler_opts)
-          require("avante.providers").openai.parse_stream_data(data, handler_opts)
-        end,
-      },
-    },
-    
-    mappings = {
-      diff = {
-        ours = "co",
-        theirs = "ct",
-        all_theirs = "ca",
-        both = "cb",
-        cursor = "cc",
-        next = "]x",
-        prev = "[x",
-      },
-      suggestion = {
-        accept = "<M-l>",
-        next = "<M-]>",
-        prev = "<M-[>",
-        dismiss = "<C-]>",
-      },
-      jump = {
-        next = "]]",
-        prev = "[[",
-      },
-      submit = {
-        normal = "<CR>",
-        insert = "<C-s>",
-      },
-    },
-  },
-  dependencies = {
-    "nvim-treesitter/nvim-treesitter",
-    "stevearc/dressing.nvim",
-    "nvim-lua/plenary.nvim",
-    "MunifTanjim/nui.nvim",
-    { "nvim-mini/mini.icons" }, 
-    {
-      "HakonHarnes/img-clip.nvim",
-      event = "VeryLazy",
-      opts = {
-        default = {
-          embed_image_as_base64 = false,
-          prompt_for_file_name = false,
-          drag_and_drop = { insert_mode = true },
+      openai = {  -- 这里是必须的 providers.openai
+        endpoint = "https://api.deepseek.com/v1",
+        model = "deepseek-chat",  -- 或 "deepseek-coder" 如果你偏代码
+        api_key_name = "DEEPSEEK_API_KEY",  -- 环境变量（推荐）
+        -- api_key_name = "sk-你的key"  -- 如果硬编码（不推荐）
+        timeout = 30000,  -- 毫秒
+
+        extra_request_body = {  -- 所有请求体参数移到这里！
+          temperature = 0.3,
+          max_tokens = 8192,  -- 注意：现在是 max_tokens，不是 max_completion_tokens（DeepSeek 用这个）
         },
       },
     },
+
+    -- auto-suggestions 用同一个 provider（DeepSeek 便宜，够用）
+    auto_suggestions_provider = "openai",
+
+    behaviour = {
+      auto_suggestions = false,  -- 建议关掉，省 token；需要时手动触发
+      auto_apply_diff_after_generation = false,
+    },
+
+    windows = {
+      sidebar = {
+        width = 35,
+      },
+    },
+
+    mappings = {
+      ask = "<leader>aa",
+      edit = "<leader>ae",
+      refresh = "<leader>ar",
+    },
+  },
+
+  build = "make",  -- 如果有 Rust 依赖
+
+  dependencies = {
+    "stevearc/dressing.nvim",
+    "nvim-lua/plenary.nvim",
+    "MunifTanjim/nui.nvim",
+
+    -- 可选：图片支持（markdown 中渲染生成的图片）
+    -- 如果你不需要，就删掉这一段
     {
-      "hrsh7th/nvim-cmp",
-      optional = true,
-      opts = function(_, opts)
-        table.insert(opts.sources, { name = "avante" })
-      end,
+      "3rd/image.nvim",
+      opts = {
+        backend = "kitty",  -- 或 "ueberzug" / "iterm2" 等，根据你的终端
+        integrations = {
+          markdown = {
+            enabled = true,
+          },
+        },
+        -- 其他 image.nvim 的选项...
+      },
     },
   },
 }
