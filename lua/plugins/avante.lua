@@ -5,14 +5,11 @@ return {
   version = false,
   build = "make",
   opts = {
-    -- 默认用 DeepSeek（你说能工作）
-    provider = "deepseek",
-
-    -- 自动补全用快的本地 9B（或改成 "ollama" 统一用 35B）
-    auto_suggestions_provider = "ollama",
-
+    provider = "deepseek", 
+    auto_suggestions_provider = "ollama_9b", 
+    
     providers = {
-      -- DeepSeek 保持不变
+      -- 1. DeepSeek (标准 OpenAI)
       deepseek = {
         __inherited_from = "openai",
         endpoint = "https://api.deepseek.com/v1",
@@ -21,28 +18,42 @@ return {
         timeout = 30000,
       },
 
-      -- Ollama 内置 provider（官方推荐，无需自定义 ollama_9b/35b）
-      ollama = {
-        -- endpoint 无 /v1（关键！）
-        endpoint = "http://127.0.0.1:11434",
-        model = "qwen3.5:9b",  -- 默认用 9B；想用 35B 就改这里，或动态切换
-        max_tokens = 8192,
+      -- 2. Ollama 9B (通过 OpenAI 协议伪装，确保 API 完整)
+      ollama_9b = {
+        __inherited_from = "openai", -- 继承以获取所有内部方法
+        ["local"] = true,
+        endpoint = "http://127.0.0.1:11434/v1", -- 注意：v1 才能配合 openai 继承
+        model = "qwen3.5:9b",
+        api_key_name = "", -- 必须留空字符串以跳过检查
         timeout = 30000,
-        -- Ollama 专属 options（num_ctx 等放这里）
-        options = {
-          num_ctx = 65536,       -- 64k for 9B
-          temperature = 0.2,
-          num_thread = 8,        -- M4 Mac Mini 合适
+        -- 重要：手动注入 Ollama 特有的 options 字段
+        extra_request_body = {
+          options = {
+            num_ctx = 65536, -- 强制 64K
+            temperature = 0.2,
+          },
         },
-        -- 必须加这个检查 Ollama 是否活着（防 404/连接错）
-        is_env_set = function()
-          return require("avante.providers").ollama.check_endpoint_alive("http://127.0.0.1:11434")
-        end,
+      },
+
+      -- 3. Ollama 35B
+      ollama_35b = {
+        __inherited_from = "openai",
+        ["local"] = true,
+        endpoint = "http://127.0.0.1:11434/v1",
+        model = "qwen3.5:35b",
+        api_key_name = "", -- 必须留空字符串以跳过检查
+        timeout = 30000,
+        extra_request_body = {
+          options = {
+            num_ctx = 8192, -- 8K
+            temperature = 0.1,
+          },
+        },
       },
     },
 
     behaviour = {
-      auto_suggestions = false,
+      auto_suggestions = false, 
       auto_apply_diff_after_generation = false,
       support_paste_from_clipboard = false,
     },
@@ -57,12 +68,11 @@ return {
       refresh = "<leader>ar",
     },
   },
-
   dependencies = {
     "stevearc/dressing.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
-    { "nvim-tree/nvim-web-devicons" },
+    "nvim-tree/nvim-web-devicons", 
     {
       "HakonHarnes/img-clip.nvim",
       event = "VeryLazy",
